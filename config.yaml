@@ -1,0 +1,13 @@
+# docker run -it -p 3306:3306 -e MYSQL_ROOT_PASSWORD=my-secret-pw mysql:8
+db: "root:my-secret-pw@tcp(127.0.0.1:3306)/mysql"
+driver: mysql
+intervalSeconds: 30
+metrics:
+- name: some_test_metric
+  help: My test metric
+  filters:
+  - name: regexp
+    config:
+      regexp: ^(?P<operation_code>\\d{3}).
+  sql: |
+    SELECT '123test', 1
