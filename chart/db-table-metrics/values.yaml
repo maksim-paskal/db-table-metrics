@@ -1,0 +1,9 @@
+image:
+  repository: paskalmaksim/db-table-metrics
+  tag: dev
+  pullPolicy: Always
+
+config: ""
+
+args: []
+env: []

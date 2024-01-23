@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db-table-metrics
+  labels:
+    app: db-table-metrics
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db-table-metrics
+  template:
+    metadata:
+      labels:
+        app: db-table-metrics
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/port: '8080'
+    spec:
+      {{ if .Values.imagePullSecret }}
+      imagePullSecrets:
+      - name: {{ .Values.imagePullSecret }}
+      {{ end }}
+      volumes:
+      - name: config
+        configMap:
+          name: db-table-metrics-config
+      containers:
+      - name: db-table-metrics
+        image: {{ printf "%s:%s" .Values.image.repository .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        args:
+        - --config=/etc/db-table-metrics/config.yaml
+        {{ if .Values.args }}
+        {{ toYaml .Values.args | nindent 8 }}
+        {{ end }}
+        {{ if .Values.env }}
+        env:
+        {{ toYaml .Values.env | nindent 8 }}
+        {{ end }}
+        resources:
+          requests:
+            cpu: 100m
+            memory: 300Mi
+          limits:
+            memory: 300Mi
+        ports:
+        - containerPort: 8080
+          name: metrics
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 30463
+          runAsGroup: 30463
+          privileged: false
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: config
+          mountPath: /etc/db-table-metrics
